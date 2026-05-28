@@ -1,94 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  ActivityIndicator,
 } from 'react-native';
 import ActivityWheel from '../components/ActivityWheel';
+import { fetchPreviousDaysData } from '../services/previousDayService';
 import { Activity, PreviousDayData, Task } from '../types/activity';
 import { getActivityColor } from '../utils/colors';
-
-/**
- * Mock data generator - In production, this would fetch from API
- * Generates data for the past 7 days
- */
-const generateMockDays = (): PreviousDayData[] => {
-  const days: PreviousDayData[] = [];
-  const today = new Date();
-
-  for (let i = 1; i <= 7; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-
-    const baseTime = date.getTime();
-    const tasks: Task[] = [
-      {
-        id: `${dateStr}-1`,
-        title: 'Coding',
-        category: 'Work',
-        status: 'completed',
-        duration: 150,
-        startTime: baseTime + 9.5 * 60 * 60 * 1000,
-        endTime: baseTime + 12 * 60 * 60 * 1000,
-      },
-      {
-        id: `${dateStr}-2`,
-        title: 'Study',
-        category: 'Study',
-        status: 'completed',
-        duration: 105,
-        startTime: baseTime + 13.5 * 60 * 60 * 1000,
-        endTime: baseTime + 15.25 * 60 * 60 * 1000,
-      },
-      {
-        id: `${dateStr}-3`,
-        title: 'Workout',
-        category: 'Health',
-        status: 'completed',
-        duration: 60,
-        startTime: baseTime + 17.5 * 60 * 60 * 1000,
-        endTime: baseTime + 18.5 * 60 * 60 * 1000,
-      },
-      {
-        id: `${dateStr}-4`,
-        title: 'Reading',
-        category: 'Study',
-        status: 'completed',
-        duration: 45,
-        startTime: baseTime + 20 * 60 * 60 * 1000,
-        endTime: baseTime + 20.75 * 60 * 60 * 1000,
-      },
-    ];
-
-    const totalTimeSpent = tasks.reduce((sum, t) => sum + t.duration, 0);
-    const completedTasks = tasks.filter(t => t.status === 'completed').length;
-
-    days.push({
-      date: dateStr,
-      tasks,
-      summary: {
-        totalTasks: tasks.length,
-        completedTasks,
-        pendingTasks: 0,
-        totalTimeSpent,
-      },
-    });
-  }
-
-  return days;
-};
-
-/**
- * Fetch previous day data (in production, call your API here)
- */
-const getPreviousDayData = (): PreviousDayData[] => {
-  return generateMockDays();
-};
 
 /**
  * Convert tasks to Activity format for the pie chart
@@ -167,9 +91,41 @@ const ActivityIcon = ({ category }: { category: string }) => {
 };
 
 export default function PastDaysScreen() {
-  const [allDays] = useState<PreviousDayData[]>(getPreviousDayData());
+  const [allDays, setAllDays] = useState<PreviousDayData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
 
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      const data = await fetchPreviousDaysData(7);
+      setAllDays(data);
+      if (data.length > 0) {
+        setSelectedDateIndex(0);
+      }
+      setIsLoading(false);
+    };
+
+    loadData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Past Days</Text>
+          <TouchableOpacity>
+            <Ionicons name="calendar" size={24} color="#1A1A1A" />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.emptyState}>
+          <ActivityIndicator size="large" color="#1A1A1A" />
+          <Text style={styles.emptyStateText}>Loading past activities...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
   // Handle empty state
   if (!allDays || allDays.length === 0) {
     return (
