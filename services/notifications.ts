@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 
 const REMINDER_TITLE = '🐬 Dolphin Tracker';
 const REMINDER_BODY = 'What are you doing right now?';
-const TEST_INTERVAL_SECONDS = 60;
 const ANDROID_CHANNEL_ID = 'hourly-reminders';
 
 let isHandlerConfigured = false;
@@ -75,16 +74,14 @@ export const scheduleRepeatingNotifications = async (): Promise<void> => {
     return;
   }
 
-  const trigger: Notifications.NotificationTriggerInput = Platform.OS === 'android'
+  const trigger: import('expo-notifications').NotificationTriggerInput = Platform.OS === 'android'
     ? {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: TEST_INTERVAL_SECONDS,
+        minute: 0,
         repeats: true,
         channelId: ANDROID_CHANNEL_ID,
       }
     : {
-        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-        seconds: TEST_INTERVAL_SECONDS,
+        minute: 0,
         repeats: true,
       };
 
