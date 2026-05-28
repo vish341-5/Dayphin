@@ -71,17 +71,22 @@ export const scheduleRepeatingNotifications = async (): Promise<void> => {
   const hasReminder = scheduled.some(isReminderNotification);
 
   if (hasReminder) {
-    return;
-  }
+  await cancelNotifications();
+}
 
-  const trigger: import('expo-notifications').NotificationTriggerInput = Platform.OS === 'android'
+  const trigger: import('expo-notifications').NotificationTriggerInput =
+  Platform.OS === 'android'
     ? {
+        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
         minute: 0,
+        second: 0,
         repeats: true,
         channelId: ANDROID_CHANNEL_ID,
       }
     : {
+        type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
         minute: 0,
+        second: 0,
         repeats: true,
       };
 
