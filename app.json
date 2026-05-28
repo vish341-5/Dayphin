@@ -7,15 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "dayphin",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/images/splash-logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff",
-      "dark": {
-        "image": "./assets/images/splash-logo.png",
-        "backgroundColor": "#000000"
-      }
-    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
@@ -44,7 +35,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-logo.png",
-          "resizeMode": "contain",
+          "resizeMode": "cover",
           "backgroundColor": "#ffffff",
           "dark": {
             "image": "./assets/images/splash-logo.png",
