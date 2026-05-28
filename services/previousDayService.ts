@@ -35,8 +35,22 @@ export async function fetchDayData(dateString: string): Promise<PreviousDayData 
     // const response = await fetch(`/api/activities/day/${dateString}`);
     // return response.json();
 
-    const allDays = generateMockPreviousDays(30);
-    return allDays.find(day => day.date === dateString) || null;
+    const date = new Date(dateString + 'T00:00:00');
+    const tasks = generateMockTasks(date);
+    const totalTimeSpent = tasks.reduce((sum, t) => sum + t.duration, 0);
+    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+    const pendingTasks = tasks.filter(t => t.status === 'pending').length;
+
+    return {
+      date: dateString,
+      tasks,
+      summary: {
+        totalTasks: tasks.length,
+        completedTasks,
+        pendingTasks,
+        totalTimeSpent,
+      },
+    };
   } catch (error) {
     console.error('Failed to fetch day data:', error);
     return null;
@@ -44,19 +58,14 @@ export async function fetchDayData(dateString: string): Promise<PreviousDayData 
 }
 
 /**
- * Generate mock previous days data (for development)
+ * Generate mock tasks for a given date.
+ * @param date The date for which to generate tasks.
+ * @returns An array of mock tasks.
  */
-function generateMockPreviousDays(count: number): PreviousDayData[] {
-  const days: PreviousDayData[] = [];
-  const today = new Date();
-
-  for (let i = 1; i <= count; i++) {
-    const date = new Date(today);
-    date.setDate(date.getDate() - i);
-    const dateStr = date.toISOString().split('T')[0];
-
-    const baseTime = date.getTime();
-    const tasks: Task[] = [
+function generateMockTasks(date: Date): Task[] {
+  const dateStr = date.toISOString().split('T')[0];
+  const baseTime = date.getTime();
+  const tasks: Task[] = [
       {
         id: `${dateStr}-1`,
         title: 'Coding',
@@ -94,6 +103,23 @@ function generateMockPreviousDays(count: number): PreviousDayData[] {
         endTime: baseTime + 20.75 * 60 * 60 * 1000,
       },
     ];
+    return tasks
+}
+
+
+/**
+ * Generate mock previous days data (for development)
+ */
+function generateMockPreviousDays(count: number): PreviousDayData[] {
+  const days: PreviousDayData[] = [];
+  const today = new Date();
+
+  for (let i = 1; i <= count; i++) {
+    const date = new Date(today);
+    date.setDate(date.getDate() - i);
+    const dateStr = date.toISOString().split('T')[0];
+
+    const tasks: Task[] = generateMockTasks(date)
 
     const totalTimeSpent = tasks.reduce((sum, t) => sum + t.duration, 0);
     const completedTasks = tasks.filter(t => t.status === 'completed').length;
