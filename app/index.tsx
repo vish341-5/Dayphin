@@ -23,6 +23,7 @@ import {
     enableReminderNotifications,
     getReminderSupportMessage,
 } from '../services/notifications';
+import { archiveTodayActivities } from '../services/previousDayService';
 import { loadActivities, saveActivities } from '../services/storage';
 import { Activity } from '../types/activity';
 import { formatDurationLabel, generateActivitySummaryData } from '../utils/analytics';
@@ -650,6 +651,10 @@ export default function HomeScreen() {
   useEffect(() => {
     const initializeActivities = async () => {
       try {
+        // Archive activities from previous day if needed (and clear them)
+        await archiveTodayActivities();
+        
+        // Load activities after archiving
         const loadedActivities = await loadActivities();
         setActivities(loadedActivities);
       } catch (error) {

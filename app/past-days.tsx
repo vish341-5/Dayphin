@@ -1,16 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-  ActivityIndicator,
+    ActivityIndicator,
+    Alert,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import ActivityWheel from '../components/ActivityWheel';
-import { fetchPreviousDaysData } from '../services/previousDayService';
+import { clearPastDaysData, fetchPreviousDaysData, forceArchiveToday, getDebugInfo, resetAndArchiveToday } from '../services/previousDayService';
 import { Activity, PreviousDayData, Task } from '../types/activity';
 import { getActivityColor } from '../utils/colors';
 
@@ -74,6 +75,8 @@ export default function PastDaysScreen() {
   const [allDays, setAllDays] = useState<PreviousDayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -83,11 +86,89 @@ export default function PastDaysScreen() {
       if (data.length > 0) {
         setSelectedDateIndex(0);
       }
+      // Load debug info
+      const info = await getDebugInfo();
+      setDebugInfo(info);
       setIsLoading(false);
     };
 
     loadData();
   }, []);
+
+  const handleClearOldData = async () => {
+    Alert.alert(
+      'Clear Old Data',
+      'This will remove all past days data. Are you sure?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear',
+          style: 'destructive',
+          onPress: async () => {
+            await clearPastDaysData();
+            const data = await fetchPreviousDaysData(7);
+            setAllDays(data);
+            const info = await getDebugInfo();
+            setDebugInfo(info);
+          },
+        },
+      ]
+    );
+  };
+
+  const handleForceArchive = async () => {
+    Alert.alert(
+      'Force Archive Today',
+      'This will archive today\'s activities (if any) to past days',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Archive',
+          onPress: async () => {
+            await forceArchiveToday();
+            const data = await fetchPreviousDaysData(7);
+            setAllDays(data);
+            const info = await getDebugInfo();
+            setDebugInfo(info);
+            Alert.alert('Success', 'Today\'s activities have been archived');
+          },
+        },
+      ]
+    );
+  };
+
+  const handleShowDebugInfo = () => {
+    const info = debugInfo;
+    Alert.alert(
+      'Debug Info',
+      `Past Days Stored: ${info?.pastDaysCount || 0}\n` +
+      `Dates: ${info?.pastDaysDates?.join(', ') || 'None'}\n` +
+      `Current Activities: ${info?.currentActivitiesCount || 0}\n` +
+      `Last Archived: ${info?.lastArchivedDate || 'Never'}`
+    );
+  };
+
+  const handleResetAndArchive = async () => {
+    Alert.alert(
+      'Complete Reset',
+      'This will clear all old data and archive today\'s activities fresh. Start completely clean from today.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: async () => {
+            await resetAndArchiveToday();
+            const data = await fetchPreviousDaysData(7);
+            setAllDays(data);
+            const info = await getDebugInfo();
+            setDebugInfo(info);
+            Alert.alert('Success', 'Complete reset done. Data is now clean from today.');
+          },
+        },
+      ]
+    );
+  };
 
   if (isLoading) {
     return (
@@ -112,14 +193,39 @@ export default function PastDaysScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Past Days</Text>
-          <TouchableOpacity>
-            <Ionicons name="calendar" size={24} color="#1A1A1A" />
+          <TouchableOpacity onPress={handleShowDebugInfo}>
+            <Ionicons name="information-circle" size={24} color="#1A1A1A" />
           </TouchableOpacity>
         </View>
-        <View style={styles.emptyState}>
-          <Ionicons name="calendar-outline" size={48} color="#D1D5DB" />
-          <Text style={styles.emptyStateText}>No activity recorded</Text>
-        </View>
+        <ScrollView style={styles.scrollView}>
+          <View style={styles.emptyState}>
+            <Ionicons name="calendar-outline" size={48} color="#D1D5DB" />
+            <Text style={styles.emptyStateText}>No activity recorded</Text>
+          </View>
+          
+          {/* Debug Panel */}
+          <View style={styles.debugPanel}>
+            <Text style={styles.debugTitle}>Debug Tools</Text>
+            <Text style={styles.debugInfo}>Past Days: {debugInfo?.pastDaysCount || 0}</Text>
+            <Text style={styles.debugInfo}>Current Activities: {debugInfo?.currentActivitiesCount || 0}</Text>
+            
+            <TouchableOpacity style={styles.debugButton} onPress={handleShowDebugInfo}>
+              <Text style={styles.debugButtonText}>Show Debug Info</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.debugButton, styles.debugButtonWarning]} onPress={handleResetAndArchive}>
+              <Text style={styles.debugButtonText}>⚡ Reset & Archive Today</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.debugButton} onPress={handleForceArchive}>
+              <Text style={styles.debugButtonText}>Force Archive Today</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={[styles.debugButton, styles.debugButtonDanger]} onPress={handleClearOldData}>
+              <Text style={styles.debugButtonText}>Clear All Old Data</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -156,8 +262,8 @@ export default function PastDaysScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Past Days</Text>
-        <TouchableOpacity>
-          <Ionicons name="calendar" size={24} color="#1A1A1A" />
+        <TouchableOpacity onPress={handleShowDebugInfo}>
+          <Ionicons name="information-circle" size={24} color="#1A1A1A" />
         </TouchableOpacity>
       </View>
 
@@ -444,5 +550,41 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9CA3AF',
     fontWeight: '400',
+  },
+  debugPanel: {
+    backgroundColor: '#FEF3C7',
+    marginHorizontal: 20,
+    marginVertical: 16,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FCD34D',
+  },
+  debugTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#92400E',
+    marginBottom: 12,
+  },
+  debugInfo: {
+    fontSize: 12,
+    color: '#B45309',
+    marginBottom: 4,
+  },
+  debugButton: {
+    backgroundColor: '#3B82F6',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    alignItems: 'center',
+  },
+  debugButtonDanger: {
+    backgroundColor: '#EF4444',
+  },
+  debugButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
