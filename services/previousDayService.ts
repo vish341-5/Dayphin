@@ -63,47 +63,7 @@ export async function fetchDayData(dateString: string): Promise<PreviousDayData 
  * @returns An array of mock tasks.
  */
 function generateMockTasks(date: Date): Task[] {
-  const dateStr = date.toISOString().split('T')[0];
-  const baseTime = date.getTime();
-  const tasks: Task[] = [
-      {
-        id: `${dateStr}-1`,
-        title: 'Coding',
-        category: 'Work',
-        status: 'completed',
-        duration: 150,
-        startTime: baseTime + 9.5 * 60 * 60 * 1000,
-        endTime: baseTime + 12 * 60 * 60 * 1000,
-      },
-      {
-        id: `${dateStr}-2`,
-        title: 'Study',
-        category: 'Study',
-        status: 'completed',
-        duration: 105,
-        startTime: baseTime + 13.5 * 60 * 60 * 1000,
-        endTime: baseTime + 15.25 * 60 * 60 * 1000,
-      },
-      {
-        id: `${dateStr}-3`,
-        title: 'Workout',
-        category: 'Health',
-        status: 'completed',
-        duration: 60,
-        startTime: baseTime + 17.5 * 60 * 60 * 1000,
-        endTime: baseTime + 18.5 * 60 * 60 * 1000,
-      },
-      {
-        id: `${dateStr}-4`,
-        title: 'Reading',
-        category: 'Study',
-        status: 'completed',
-        duration: 45,
-        startTime: baseTime + 20 * 60 * 60 * 1000,
-        endTime: baseTime + 20.75 * 60 * 60 * 1000,
-      },
-    ];
-    return tasks
+    return []
 }
 
 
