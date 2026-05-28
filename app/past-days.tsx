@@ -70,26 +70,6 @@ const formatDuration = (minutes: number): string => {
   return `${mins}m`;
 };
 
-/**
- * Activity Icon Component
- */
-const ActivityIcon = ({ category }: { category: string }) => {
-  const categoryMap: Record<string, { icon: string; bgColor: string }> = {
-    Work: { icon: 'code-slash', bgColor: '#E0F2FE' },
-    Study: { icon: 'book', bgColor: '#E0F0FF' },
-    Health: { icon: 'barbell', bgColor: '#FEF3E2' },
-    Personal: { icon: 'document-text', bgColor: '#FEF3E2' },
-  };
-
-  const { icon, bgColor } = categoryMap[category] || { icon: 'checkmark-circle', bgColor: '#F0F0F0' };
-
-  return (
-    <View style={[styles.activityIcon, { backgroundColor: bgColor }]}>
-      <Ionicons name={icon as any} size={20} color={getActivityColor(category)} />
-    </View>
-  );
-};
-
 export default function PastDaysScreen() {
   const [allDays, setAllDays] = useState<PreviousDayData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -274,34 +254,6 @@ export default function PastDaysScreen() {
                 </View>
               </View>
             </View>
-
-            {/* Activities List Section */}
-            <View style={styles.activitiesSection}>
-              <View style={styles.activitiesSectionHeader}>
-                <Text style={styles.activitiesSectionTitle}>Activities</Text>
-                <Text style={styles.totalTimeLabel}>Total Time</Text>
-              </View>
-
-              <View style={styles.activitiesListContainer}>
-                {selectedDay.tasks.map((task, idx) => (
-                  <TouchableOpacity key={task.id} style={styles.activityListItem}>
-                    <ActivityIcon category={task.category} />
-                    <View style={styles.activityListContent}>
-                      <Text style={styles.activityListName}>{task.title}</Text>
-                      {task.startTime && task.endTime && (
-                        <Text style={styles.activityListTime}>
-                          {formatTime(task.startTime)} — {formatTime(task.endTime)}
-                        </Text>
-                      )}
-                    </View>
-                    <Text style={styles.activityListDuration}>
-                      {formatDuration(task.duration)}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
             </>
           )}
 
@@ -458,73 +410,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '500',
     color: '#6B7280',
-  },
-  activitiesSection: {
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 24,
-  },
-  activitiesSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  activitiesSectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1A1A1A',
-  },
-  totalTimeLabel: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6B7280',
-  },
-  activitiesListContainer: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  activityListItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
-    gap: 12,
-  },
-  activityIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  activityListContent: {
-    flex: 1,
-  },
-  activityListName: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#1A1A1A',
-    marginBottom: 2,
-  },
-  activityListTime: {
-    fontSize: 13,
-    color: '#6B7280',
-    fontWeight: '400',
-  },
-  activityListDuration: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginRight: 8,
   },
   footer: {
     flexDirection: 'row',
