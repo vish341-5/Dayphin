@@ -288,7 +288,7 @@ export default function PastDaysScreen() {
               <View style={styles.analyticsCard}>
               <View style={styles.analyticsRight}>
                 <ActivityWheel activities={activitiesForChart} size={200} />
-                <Text style={styles.wheelTimeLabel}>{formatTime(lastTaskTime)}</Text>
+                <Text style={styles.wheelTimeLabel}>{formatTime(lastTaskTime ??0)}</Text>
               </View>
 
               <View style={styles.analyticsLeft}>
