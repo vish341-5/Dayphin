@@ -1,5 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+<<<<<<< HEAD
 import React, { useEffect, useMemo, useState } from 'react';
+=======
+import React, { useState, useEffect } from 'react';
+>>>>>>> c84e595 (remove debug tools)
 import {
     ActivityIndicator,
     Alert,
@@ -10,6 +14,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+<<<<<<< HEAD
 import ActivityWheel from '../components/ActivityWheel';
 import { clearPastDaysData, fetchPreviousDaysData, forceArchiveToday, getDebugInfo, resetAndArchiveToday } from '../services/previousDayService';
 import { Activity, PreviousDayData, Task } from '../types/activity';
@@ -26,6 +31,10 @@ const tasksToActivities = (tasks: Task[]): Activity[] => {
     endTime: task.endTime || task.duration * 60 * 1000,
   }));
 };
+=======
+import { fetchPreviousDaysData } from '../services/previousDayService';
+import { PreviousDayData } from '../types/activity';
+>>>>>>> c84e595 (remove debug tools)
 
 /**
  * Format date string to readable format
@@ -41,34 +50,6 @@ const formatDateDisplay = (dateStr: string): { day: string; date: number; month:
     month: months[date.getMonth()],
     year: date.getFullYear(),
   };
-};
-
-/**
- * Format time in milliseconds to HH:MM AM/PM
- */
-const formatTime = (ms: number): string => {
-  const date = new Date(ms);
-  const hours = date.getHours();
-  const minutes = date.getMinutes().toString().padStart(2, '0');
-  const ampm = hours >= 12 ? 'PM' : 'AM';
-  const displayHours = hours % 12 || 12;
-  return `${displayHours}:${minutes} ${ampm}`;
-};
-
-/**
- * Format duration in minutes to readable string
- */
-const formatDuration = (minutes: number): string => {
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-
-  if (hours > 0 && mins > 0) {
-    return `${hours}h ${mins}m`;
-  }
-  if (hours > 0) {
-    return `${hours}h`;
-  }
-  return `${mins}m`;
 };
 
 export default function PastDaysScreen() {
@@ -231,32 +212,6 @@ export default function PastDaysScreen() {
   }
 
   const selectedDay = allDays[selectedDateIndex];
-  const dateDisplay = formatDateDisplay(selectedDay.date);
-  
-  // Convert tasks to activities for the pie chart
-  const activitiesForChart = useMemo(
-    () => tasksToActivities(selectedDay.tasks),
-    [selectedDay.tasks]
-  );
-
-  // Group tasks by category for legend
-  const categorySummary = useMemo(() => {
-    const grouped = new Map<string, { category: string; totalMinutes: number }>();
-    selectedDay.tasks.forEach((task) => {
-      const key = task.category.toLowerCase();
-      if (grouped.has(key)) {
-        const existing = grouped.get(key)!;
-        grouped.set(key, { category: task.category, totalMinutes: existing.totalMinutes + task.duration });
-      } else {
-        grouped.set(key, { category: task.category, totalMinutes: task.duration });
-      }
-    });
-    return Array.from(grouped.values()).sort((a, b) => b.totalMinutes - a.totalMinutes);
-  }, [selectedDay.tasks]);
-
-  // Get the first and last task times for display
-  const firstTaskTime = selectedDay.tasks.length > 0 && selectedDay.tasks[0].startTime ? selectedDay.tasks[0].startTime : 0;
-  const lastTaskTime = selectedDay.tasks.length > 0 && selectedDay.tasks[selectedDay.tasks.length - 1].endTime ? selectedDay.tasks[selectedDay.tasks.length - 1].endTime : 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -319,48 +274,11 @@ export default function PastDaysScreen() {
 
         <>
           {/* Empty Activities State */}
-          {selectedDay.tasks.length === 0 ? (
+          {selectedDay.tasks.length === 0 && (
             <View style={styles.emptyActivitiesState}>
               <Ionicons name="checkmark-circle-outline" size={40} color="#D1D5DB" />
               <Text style={styles.emptyActivitiesText}>No activities logged</Text>
             </View>
-          ) : (
-            <>
-              {/* Analytics Card */}
-              <View style={styles.analyticsCard}>
-              <View style={styles.analyticsRight}>
-                <ActivityWheel activities={activitiesForChart} size={200} />
-                <Text style={styles.wheelTimeLabel}>{formatTime(lastTaskTime ??0)}</Text>
-              </View>
-
-              <View style={styles.analyticsLeft}>
-                <Text style={styles.dateDisplayLabel}>
-                  {dateDisplay.day}, {dateDisplay.date} {dateDisplay.month} {dateDisplay.year}
-                </Text>
-                <Text style={styles.timeLabel}>{formatTime(firstTaskTime)}</Text>
-
-                <Text style={styles.totalTrackedLabel}>Total Tracked</Text>
-                <Text style={styles.totalTrackedValue}>
-                  {formatDuration(selectedDay.summary.totalTimeSpent)}
-                </Text>
-
-                <View style={styles.legendContainer}>
-                  {categorySummary.map((item) => (
-                    <View key={item.category} style={styles.legendItem}>
-                      <View
-                        style={[
-                          styles.legendDot,
-                          { backgroundColor: getActivityColor(item.category) },
-                        ]}
-                      />
-                      <Text style={styles.legendLabel}>{item.category}</Text>
-                      <Text style={styles.legendValue}>{item.totalMinutes}m</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </View>
-            </>
           )}
 
           {/* Footer */}
@@ -442,80 +360,6 @@ const styles = StyleSheet.create({
   },
   dateCardNumberSelected: {
     color: '#FFFFFF',
-  },
-  analyticsCard: {
-    flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
-    marginHorizontal: 20,
-    marginVertical: 16,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-    gap: 16,
-  },
-  analyticsLeft: {
-    width: '100%',
-  },
-  analyticsRight: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: '100%',
-  },
-  dateDisplayLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  timeLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginBottom: 12,
-  },
-  wheelTimeLabel: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginTop: 8,
-  },
-  totalTrackedLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  totalTrackedValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#1A1A1A',
-    marginBottom: 12,
-  },
-  legendContainer: {
-    gap: 8,
-  },
-  legendItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  legendDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  legendLabel: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#1A1A1A',
-    flex: 1,
-  },
-  legendValue: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: '#6B7280',
   },
   footer: {
     flexDirection: 'row',
